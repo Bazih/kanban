@@ -16,7 +16,7 @@ defmodule Kanban.Process do
   end
 
   @impl GenServer
-  def handle_call({:+, value}, _from, state) do
+  def handle_call({:+, value}, _from, state) when is_number(value) do
     state = state + value
     # IO.inspect({msg, from, state}, label: "CALL")
     {:reply, state, state}
