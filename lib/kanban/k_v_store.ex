@@ -47,6 +47,12 @@ defmodule Kanban.KVStore do
   end
 
   @impl GenServer
+  def handle_cast({:delete, key}, state) do
+    state = Map.delete(state, key)
+    {:noreply, state}
+  end
+
+  @impl GenServer
   def handle_cast({:insert, key, value}, state) do
     case Map.fetch(state, key) do
       {:ok, _} ->
@@ -79,17 +85,13 @@ defmodule Kanban.KVStore do
   @impl GenServer
   def handle_call({:get, key}, _from, state) do
     Map.fetch(state, key)
+
     case Map.fetch(state, key) do
       {:ok, _} ->
         {:reply, Map.get(state, key), state}
+
       :error ->
         {:reply, "Key not found", state}
     end
-  end
-
-  @impl GenServer
-  def handle_cast({:delete, key}, state) do
-    state = Map.delete(state, key)
-    {:noreply, state}
   end
 end

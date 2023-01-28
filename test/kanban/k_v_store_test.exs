@@ -17,14 +17,14 @@ defmodule Kanban.KVStoreTest do
   test ":insert, when the key to be inserted is not found" do
     {:ok, _pid} = Kanban.KVStore.start_link(%{})
     GenServer.cast(Kanban.KVStore, {:insert, "test", "happy"})
-    result = GenServer.call(Kanban.KVStore, {:get, "test"}) 
+    result = GenServer.call(Kanban.KVStore, {:get, "test"})
     assert "happy" = result
   end
 
   test ":insert, when the inserted key is found" do
     {:ok, _pid} = Kanban.KVStore.start_link(%{"hello" => "world"})
     GenServer.cast(Kanban.KVStore, {:insert, "hello", "new world"})
-    result = GenServer.call(Kanban.KVStore, {:get, "hello"}) 
+    result = GenServer.call(Kanban.KVStore, {:get, "hello"})
     assert "world" = result
   end
 
