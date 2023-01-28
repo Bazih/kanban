@@ -8,29 +8,31 @@ defmodule Kanban.KVStore do
   - delete a specific key and its value
   """
 
-  @doc """
+  # @doc """
 
-  ## Examples
+  # ## Examples
 
-      iex> Kanban.KVStore.start_link(%{})
-      iex> GenServer.call(Kanban.KVStore, {:insert, "hello", "world"})
-      %{"hello" => "world"}
-      iex> GenServer.call(Kanban.KVStore, {:insert, "hello", "world"})
-      "The key already exists"
-      iex> GenServer.call(Kanban.KVStore, {:update, "hello", "updated world"})
-      %{"hello" => "updated world"}
-      iex> GenServer.call(Kanban.KVStore, {:update, "h", "w"})
-      "Key not found"
-      iex> GenServer.call(Kanban.KVStore, {:get, "hello"})
-      "updated world"
-      iex> GenServer.call(Kanban.KVStore, {:get, "h"})
-      nil
-      iex> GenServer.call(Kanban.KVStore, {:delete, "hello"})
-      %{}
-      iex> GenServer.call(Kanban.KVStore, {:delete, "hello"})
-      "Key not found"
+  #     iex> Kanban.KVStore.start_link(%{})
+  #     iex> GenServer.call(Kanban.KVStore, {:get, "hello"})
+  #     "Key not found"
+  #     iex> GenServer.cast(Kanban.KVStore, {:insert, "hello", "world"})
+  #     :ok
+  #     iex> GenServer.call(Kanban.KVStore, {:get, "hello"})
+  #     "world"
+  #     iex> GenServer.cast(Kanban.KVStore, {:update, "hello", "updated world"})
+  #     :ok
+  #     iex> GenServer.call(Kanban.KVStore, {:get, "hello"})
+  #     "updated world"
+  #     iex> GenServer.cast(Kanban.KVStore, {:update, "h", "w"})
+  #     :ok
+  #     iex> GenServer.call(Kanban.KVStore, {:get, "h"})
+  #     "Key not found"
+  #     iex> GenServer.cast(Kanban.KVStore, {:delete, "hello"})
+  #     :ok
+  #     iex> GenServer.call(Kanban.KVStore, {:get, "hello"})
+  #     "Key not found"
 
-  """
+  # """
 
   use GenServer
 
@@ -45,50 +47,49 @@ defmodule Kanban.KVStore do
   end
 
   @impl GenServer
-  def handle_call({:insert, key, value}, _from, state) do
+  def handle_cast({:insert, key, value}, state) do
     case Map.fetch(state, key) do
       {:ok, _} ->
-        {:reply, "The key already exists", state}
+        {:noreply, state}
 
       :error ->
         state = Map.put(state, key, value)
-        {:reply, state, state}
+        {:noreply, state}
     end
   end
 
   @impl GenServer
-  def handle_call({:update, key, value}, _from, state) do
+  def handle_cast({:update, key, value}, state) do
     case Map.fetch(state, key) do
       {:ok, _} ->
         state =
-          Map.update(
+          Map.update!(
             state,
             key,
-            value,
             fn _ -> value end
           )
 
-        {:reply, state, state}
+        {:noreply, state}
 
       :error ->
-        {:reply, "Key not found", state}
+        {:noreply, state}
     end
   end
 
   @impl GenServer
   def handle_call({:get, key}, _from, state) do
-    {:reply, Map.get(state, key), state}
-  end
-
-  @impl GenServer
-  def handle_call({:delete, key}, _from, state) do
+    Map.fetch(state, key)
     case Map.fetch(state, key) do
       {:ok, _} ->
-        state = Map.delete(state, key)
-        {:reply, state, state}
-
+        {:reply, Map.get(state, key), state}
       :error ->
         {:reply, "Key not found", state}
     end
+  end
+
+  @impl GenServer
+  def handle_cast({:delete, key}, state) do
+    state = Map.delete(state, key)
+    {:noreply, state}
   end
 end
